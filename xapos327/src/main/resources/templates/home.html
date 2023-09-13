@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Home</title>
+		<script src="/jquery-3.5.1.min.js"></script>
+	</head>
+	<body>
+		
+		<div>
+			<h1>Welcome home!</h1>
+			<table border="1">
+				<tr>
+					<td>Nama Lengkap: </td>
+					<td><input type="text" id="nama"></td>
+				</tr>
+				<tr>
+					<td>Gender: </td>
+					<td>
+						<select id="gender">
+							<option>Pria</option>
+							<option>Wanita</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>Agama: </td>
+					<td>
+						<input type="radio" id="p1" name="agama" value="Islam"> Islam </br>
+						<input type="radio" id="p2" name="agama" value="Kristen"> Kristen </br>
+						<input type="radio" id="p3" name="agama" value="Hindu"> Hindu </br>
+						<input type="radio" id="p3" name="agama" value="Budha"> Budha </br>
+						<input type="radio" id="p3" name="agama" value="Katolik"> Katolik </br>
+					</td>
+				</tr>
+				<tr>
+					<td>Alamat: </td>
+					<td><textarea id="alamat"></textarea></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<button onclick="saveData()">Save</button>
+						<button onclick="saveJQuery()">Save jQuery</button>
+					</td>
+					
+				</tr>
+			</table>	
+		</div>
+		<div id="isi_data">
+			<h1>Isi Data</h1>
+		</div>
+		
+		<script>
+			function saveData(){
+				var nama = document.getElementById("nama").value;
+				var gender = document.getElementById("gender").value;
+				var alamat = document.getElementById("alamat").value;
+				
+				var agama = ""
+				if(document.getElementById("p1").checked){ // check if the radio button for id p1 is clicked
+					agama = document.getElementById("p1").value
+					
+				}else if(document.getElementById("p2").checked){
+					agama = document.getElementById("p2").value
+					
+				}else if(document.getElementById("p3").checked){
+					agama = document.getElementById("p3").value
+					
+				}else if(document.getElementById("p4").checked){
+					agama = document.getElementById("p4").value
+					
+				}else if(document.getElementById("p5").checked){
+					agama = document.getElementById("p5").value
+				}
+				
+				var str = "<h1>Isi Data</h1>"
+				str += "<p>Nama lengkap: " + nama + "</p>"
+				str += "<p>Gender: " + gender + "</p>"
+				str += "<p>Agama: " + agama + "</p>"
+				str += "<p>Alamat: " + alamat + "</p>"
+				
+				document.getElementById("isi_data").innerHTML = str
+			}
+			
+			function saveJQuery(){
+				var nama = $("#nama").val()
+				var gender = $("#gender").val()
+				var alamat = $("#alamat").val()
+				
+				var agama = ""
+				if($("#p1").is("checked")){ // check if the radio button for id p1 is clicked
+					agama = $("#p1").val()
+					
+				}else if($("#p2").is("checked")){
+					agama = $("#p2").val()
+					
+				}else if($("#p3").is("checked")){
+					agama = $("#p3").val()
+					
+				}else if($("#p4").is("checked")){
+					agama = $("#p4").val()
+					
+				}else if($("#p5").is("checked")){
+					agama = $("#p5").val()
+				}
+				
+				var str = "<h1>Isi Data</h1>"
+				str += "<p>Nama lengkap: " + nama + "</p>"
+				str += "<p>Gender: " + gender + "</p>"
+				str += "<p>Agama: " + agama + "</p>"
+				str += "<p>Alamat: " + alamat + "</p>"
+				
+				$("#isi_data").html(str)
+			}
+			
+		</script>
+	</body>
+</html>

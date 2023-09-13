@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Kalkulator</title>
+		<script src="/jquery-3.5.1.min.js"></script>
+	</head>
+	<body>
+		<div>
+			<table border="1">
+				<tr>
+					<td>Input 1: </td>
+					<td><input type="number" id="inputOne" ></td>
+				</tr>
+				<tr>
+					<td>Input 2: </td>
+					<td><input type="number" id="inputTwo" ></td>
+				</tr>
+				<tr>
+					<td>Hasil: </td>
+					<td><span id="hasil"></span></td>
+				</tr>
+				<tr>
+					<td>Save jQuery: </td>
+					<td>
+						<button onclick="add()">+</button>
+						<button onclick="subs()">-</button>
+						<button onclick="multi()">*</button>
+						<button onclick="divide()">/</button>
+						<button onclick="reset()">Reset</button>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<script>
+			function add(){
+				let one = +$("#inputOne").val()
+				var two = +$("#inputTwo").val()
+				var num = one+two
+				var hasil = "<span>" + num + "</span>"
+				
+				$("#hasil").html(hasil)
+			}
+			function subs(){
+				let one = +$("#inputOne").val()
+				var two = +$("#inputTwo").val()
+				var num = one-two
+				var hasil = "<span>" + num + "</span>"
+				
+				$("#hasil").html(hasil)
+			}
+			function multi(){
+				let one = +$("#inputOne").val()
+				var two = +$("#inputTwo").val()
+				var num = one*two
+				var hasil = "<span>" + num + "</span>"
+				
+				$("#hasil").html(hasil)
+			}
+			function divide(){
+				let one = +$("#inputOne").val()
+				var two = +$("#inputTwo").val()
+				var num = one/two
+				var hasil = "<span>" + num + "</span>"
+				
+				$("#hasil").html(hasil)
+			}
+			function reset(){
+			
+				$("#inputOne").val("")
+				$("#inputTwo").val("")
+				$("#hasil").html("")
+			}
+		</script>
+	</body>
+</html>
