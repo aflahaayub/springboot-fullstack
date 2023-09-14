@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Category Page</title>
+	</head>
+	<body>
+		<h1>Category Page</h1>
+		<button onclick="window.location.href='/category/addform'">Create</button>
+		<table border="2">
+			<thead>
+				<tr>
+					<th>Category Initial</th>
+					<th>Category Name</th>
+					<th>Is Active</th>
+					<th colspan="2">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="item:${listCategory}">
+					<td th:text="${item.categoryInitial}"></td>
+					<td th:text="${item.categoryName}"></td>
+					<td th:text="${item.isActive}"></td>
+					<td><a th:href="@{/category/edit/{id}(id=${item.id})}">Edit</a></td>
+					<td><a th:href="@{/category/delete/{id}(id=${item.id})}">Delete</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</body>
+	
+	
+	
+</html>

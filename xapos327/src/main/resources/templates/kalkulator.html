@@ -18,7 +18,10 @@
 				</tr>
 				<tr>
 					<td>Hasil: </td>
-					<td><span id="hasil"></span></td>
+					<td>
+						<!--<span id="hasil"></span> -->
+						<label id="hasil"></label>
+						</td>
 				</tr>
 				<tr>
 					<td>Save jQuery: </td>
@@ -34,36 +37,36 @@
 		</div>
 		<script>
 			function add(){
+				// debugger // from jQuery debugeer
 				let one = +$("#inputOne").val()
 				var two = +$("#inputTwo").val()
 				var num = one+two
-				var hasil = "<span>" + num + "</span>"
 				
-				$("#hasil").html(hasil)
+				$("#hasil").html(num)
 			}
 			function subs(){
 				let one = +$("#inputOne").val()
 				var two = +$("#inputTwo").val()
-				var num = one-two
-				var hasil = "<span>" + num + "</span>"
+				console.log(one, two);
 				
-				$("#hasil").html(hasil)
+				var num = one-two
+				
+				$("#hasil").html(num)
 			}
 			function multi(){
 				let one = +$("#inputOne").val()
 				var two = +$("#inputTwo").val()
 				var num = one*two
-				var hasil = "<span>" + num + "</span>"
 				
-				$("#hasil").html(hasil)
+				$("#hasil").html(num)
+				//$("#hasil").text(num)
 			}
 			function divide(){
 				let one = +$("#inputOne").val()
 				var two = +$("#inputTwo").val()
 				var num = one/two
-				var hasil = "<span>" + num + "</span>"
 				
-				$("#hasil").html(hasil)
+				$("#hasil").html(num)
 			}
 			function reset(){
 			

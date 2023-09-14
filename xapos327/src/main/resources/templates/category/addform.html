@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	<title>Add Form Category</title>
+</head>
+
+<body>
+	<h1>Create Form</h1>
+	<form th:action="@{/category/save}" method="post" th:object="${category}"> <!--the category will be used as the parameter when make a PostMapping -->
+		<input type="hidden" name="id" th:field="*{id}"> <!-- buat nangkep si id dan bisa dibawa ke controller post -->
+		<table border="2">
+			<tr>
+				<td>Category Initial</td>
+				<td><input type="text" name="categoryInitial" th:field="*{categoryInitial}"></td>
+			</tr>
+			<tr>
+				<td>Category Name</td>
+				<td><input type="text" name="categoryName" th:field="*{categoryName}"></td>
+			</tr>
+			<tr>
+				<td>Is Active</td>
+				<td><input type="checkbox" name="isActive" th:field="*{isActive}"></td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<input type="submit" value="Save">
+				</td>
+
+			</tr>
+		</table>
+	</form>
+</body>
+
+</html>
