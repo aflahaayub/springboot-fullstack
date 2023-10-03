@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html layout:decorate="~{fragments/layout}">
+
+<head>
+	<title>Order Page</title>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<h1 class="text-center">Order Page</h1>
+		<button class="btn btn-primary" onclick="newOrder()">New Order</button>
+		<button class="btn btn-success" onclick="historyOrder()">History Order</button>
+
+		<div id="main-contain" class="mt-3"></div>
+		<div id="data-list"></div>
+
+
+		<script>
+
+			function newOrder() {
+				$("#data-list").empty();
+				
+				$.ajax({
+					url: '/api/transaction/orderheader/create',
+					type: 'post',
+					contentType: 'applications/json',
+					success: function () {
+						console.log("test");
+
+						$.ajax({
+							url: '/api/transaction/maxorderheaderid',
+							type: 'get',
+							contentType: 'application/json',
+							success: function (headerId) {
+								console.log("test2")
+
+								$.ajax({
+									url: '/api/products',
+									type: 'get',
+									contentType: 'application/json',
+									success: function (dataProduct) {
+										var str = `
+											<form id="orderHeaderForm">
+											<table class="table table-hover table-striped mt-3">
+											<tr>
+												<td>Product</td>
+												<td>
+													<select id="productId" class="form-control" onchange="getPrice(this.value)">
+														<option>----Pilih Variant----</option>`
+
+										for (var i = 0; i < dataProduct.length; i++) {
+											console.log(dataProduct)
+											if(dataProduct[i].stock > 0){
+												str += `<option value=${dataProduct[i].id}> ${dataProduct[i].productName} </option>`
+											}
+											
+										}
+										str += ` </select>
+												</td>
+											</tr>
+											<tr>
+												<td>Price</td>
+												<td><input type="number" class="form-control" disabled id="product_price" /></td>
+											</tr>
+											<tr>
+												<td>Quantity</td>
+												<td><input type="number" required class="form-control" id="product_qty" /></td>
+											</tr>
+											<tr>
+												<td><button class="btn btn-success">Tambah Item</button></td>
+											</tr>
+										</table>
+										</form>`
+										$("#main-contain").html(str);
+										$("#orderHeaderForm").submit(function () {
+											addItem(headerId);
+											return false;
+										})
+									}
+								})
+							}
+						})
+					}
+				})
+			}
+
+			function getPrice(id) {
+				console.log(id + " price")
+				$.ajax({
+					url: '/api/products/' + id,
+					type: 'get',
+					contentType: 'applications/json',
+					success: function (product) {
+						console.log(product.price)
+						$("#product_price").val(product.price)
+						$("#product_qty").empty();
+
+					}
+				})
+
+
+			}
+
+			function addItem(headerId) {
+				var productId = $("#productId").val()
+				var price = $("#product_price").val()
+				var quantity = $("#product_qty").val()
+				
+				var formData = `{
+					"headerId" : ${headerId},
+					"productId" : ${productId},
+					"quantity" : ${quantity},
+					"price" : ${price}
+					} 
+				`
+
+				$.ajax({
+					url: '/api/transaction/orderdetail/add',
+					type: 'post',
+					data: formData,
+					contentType: 'application/json',
+					success: function () {
+						$("#product_qty").val("")
+						$("#product_price").val("")
+						$("#productId").val("----Pilih Product----")
+						dataList(headerId)
+					}
+				})
+
+			}
+
+			function dataList(headerId) {
+				$.ajax({
+					url: '/api/transaction/orderDetailByHeaderId/' + headerId,
+					type: 'get',
+					contentType: 'application/json',
+					success: function (data) {
+						var str = `
+							<table class="table table-hover table-striped"> 
+								<tr> 
+									<td>Reference</td>
+									<td>Product</td>
+									<td>Price</td>
+									<td>Quantity</td>
+									<td>Total</td>
+								</tr>`
+						var totalAmount = 0;
+						for (var i = 0; i < data.length; i++) {
+							console.log(data[i])
+							str += `<tr> 
+									<td>${data[i].orderHeader.reference}</td>
+									<td>${data[i].product.productName}</td>
+									<td>${data[i].price}</td>
+									<td>${data[i].quantity}</td>
+									<td>${data[i].price * data[i].quantity}</td>
+								</tr>`
+
+							totalAmount += data[i].price * data[i].quantity
+						}
+
+						str += `<tr>
+								<td colspan="4">Total Amount</td>
+								<td><input id="total_amount" disabled value="${totalAmount}"></td>
+							</tr>
+							<tr>
+								<td><button class="btn btn-info" onclick="checkout(${headerId}, ${totalAmount})">Checkout</td>
+							</tr>
+							</table>	
+							`
+
+						$("#data-list").html(str)
+					}
+				})
+
+			}
+
+			function checkout(headerId, totalAmount) {
+				$.ajax({
+					url: `/api/transaction/checkout/${headerId}/${totalAmount}`,
+					type: 'put',
+					contentType: 'application/json',
+					success: function () {
+						// window.location.href = '/order/index'
+						window.location.reload()
+					}
+
+
+				})
+			}
+
+			function historyOrder() {
+				$("#main-contain").empty();
+				$.ajax({
+					url: `/api/transaction/orderdetail/getAllData`,
+					type: 'get',
+					contentType: 'application/json',
+					success: function (datas) {
+						var str = `
+										<table class="table table-hover table-striped" border="3">
+											<thead class="thead-dark">
+												<tr>
+													<th>Reference</th>
+													<th>Product</th>
+													<th>Quantity</th>
+													<th>Amount</th>
+													<th>Order Date</th>
+												<tr>	
+											</thead>
+											
+											`
+							console.log(datas[0].createDate)				
+						for (var i = 0; i < datas.length; i++) {
+							
+							var createDate = new Date(datas[i].createDate)
+							createDate = createDate.toLocaleString('en-GB', { timeZone: 'UTC' })
+							str += `<tr>`
+							str += `<td>${datas[i].orderHeader.reference}</td>
+							<td>${datas[i].product.productName}
+							<td>${datas[i].quantity}</td>
+									<td>Rp. ${(datas[i].price * datas[i].quantity).toString().replace(/(\d)(?=(\d{3})+$)/g, "$1.")}</td>
+									<td>${datas[i].createDate}</td>
+									</tr>`
+						}
+
+						str += `</table>`
+						$("#data-list").html(str)
+					}
+				})
+
+
+			}
+
+		</script>
+	</div>
+
+</body>
+
+</html>

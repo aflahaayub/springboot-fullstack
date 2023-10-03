@@ -39,6 +39,17 @@ public class Category {
 	@Column(name= "modify_date")
 	public Date modifyDate;
 	
+	@Column(name="sphoto")
+	public String sphoto;
+	
+	public String getSphoto() {
+		return sphoto;
+	}
+
+	public void setSphoto(String sphoto) {
+		this.sphoto = sphoto;
+	}
+
 	public Long getId() {
 		return id;
 	}

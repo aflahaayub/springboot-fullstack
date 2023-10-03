@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html layout:decorate="~{fragments/layout}">
+
+<head>
+	<title>Products Page</title>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<h1 class="text-center">All Products</h1>
+		<button class="btn btn-primary mt-2" onclick="createProduct()">Create Product</button>
+		<div id="isiData" style="overflow-y: auto;"></div>
+
+		<script>
+			getAllDatas();
+			function getAllDatas() {
+				$.ajax({
+					url: '/api/products',
+					type: 'get',
+					contentType: 'application/json',
+					success: function (res) {
+						var str = `
+					<table class="table table-hover table-striped mt-3 overflow-auto" border="3" >
+						<thead class="thead-dark"> 
+							<tr>
+								<th class="text-center">No. </th>
+								<th class="text-center">Category/Variant</th>
+								<th class="text-center">Initial</th>
+								<th class="text-center">Image</th>
+								<th class="text-center">Name</th>
+								<th class="text-center">Description</th>
+								<th class="text-center">Price</th>
+								<th class="text-center">Stock</th>
+								<th class="text-center" >Active</th>
+								<th class="text-center" colspan="2">Action</th>
+							</tr>
+						</thead>
+						<tbody>
+							`
+						for (var i = 0; i < res.length; i++) {
+							console.log(res[i])
+							var imgPath = "/images/default.jpg"
+							
+							if(res[i].imagePath != null){
+								imgPath =  "" + res[i].imagePath
+							}
+							
+							str +=
+
+								`
+								<tr>
+									<td class="text-center"> ${i + 1}. </td>
+							<td>${res[i].variant.variantInitial} / ${res[i].variant.category.categoryInitial}</td>
+							 <td>${res[i].productInitial}</td>
+							 <td><img id="uploadedImg" src="${imgPath}" style="width:135px;"></td>
+							 <td>${res[i].productName}</td>
+							 <td>${res[i].desc}</td>
+							 <td>Rp. ${(res[i].price).toString().replace(/(\d)(?=(\d{3})+$)/g, "$1.")}</td>
+							 <td>${res[i].stock}</td>
+							`
+
+							//<td><img id="uploadedImg" src="/images/${res[i].imageData}"></td>
+
+							var checked = res[i].isActive ? "checked" : ""
+							str += `
+							<td><input type="checkbox" disabled ${checked}></td>
+							<td><button class="btn btn-warning" value="${res[i].id}" onclick="fEdit(value)"> Edit </button> </td>
+							<td><button class="btn btn-danger" value="${res[i].id}" onclick="fDelete(value)"> Delete </button> </td>
+							</tr>
+							`
+						}
+						str += `
+							</tr>
+						</tbody>
+					</table>`
+
+						$("#isiData").html(str);
+					}
+				})
+			}
+
+			function createProduct() {
+				$.ajax({
+					url: '/api/category',
+					type: 'get',
+					contentType: 'application/json',
+					success: function (dataCategory) {
+						$.ajax({
+							url: '/api/variant',
+							type: 'get',
+							contentType: 'application/json',
+							success: function (res) {
+								var str = `
+							<form id="productForm" enctype="multipart/form-data">
+								<div class="form-group"> 
+									<label>Category</label>
+									<select id="categoryId" class="custom-select">
+									<option value="">--Pilih Category--</option>`
+								for (var i = 0; i < dataCategory.length; i++) {
+									str += `<option value="${dataCategory[i].id}">${dataCategory[i].categoryName}</option>`
+								}
+								str += `</select>
+								</div>
+								`
+								str += `
+								<div class="form-group"> 
+									<label>Variant</label>
+									<select id="variantId" class="custom-select">
+									<option>--Pilih Variant--</option>`
+								for (var i = 0; i < res.length; i++) {
+									str += `<option value="${res[i].id}">${res[i].variantName}</option>`
+								}
+								str += `</select>
+								</div>
+							<div class="form-group"> 
+								<label>Initial</label>
+								<input type="text" class="form-control" id="productInitial">
+							</div>
+							<div class="form-group"> 
+								<label>Product Image</label>
+								<br>
+								<input type="file" name="file" accept="image/*" id="productImg" onchange="uploadImg()">
+							</div>
+							<div class="form-group"> 
+								<label>Name</label>
+								<input type="text" class="form-control" id="productName">
+							</div>
+							<div class="form-group"> 
+								<label>Description</label>
+								<input type="text" class="form-control" id="desc">
+							</div>
+							<div class="form-group"> 
+								<label>Price</label>
+								<input type="number" class="form-control" id="price">
+							</div>
+							<div class="form-group"> 
+								<label>Stock</label>
+								<input type="number" class="form-control" id="stock">
+							</div>`
+								str += `<div class="form-group ml-2"> 
+								<input type="checkbox" class="form-check-input" id="isActive" disabled checked>		
+								<label class="form-check-label">Active </label>
+							</div>
+						</form>`
+
+								$(".modal-title").html("Create Product")
+								$(".modal-body").html(str)
+								$("#btnSave").html("Save Data")
+								$("#btnSave").off("click").on("click", saveCreateData);
+								$("#modal").modal("show")
+								changeData()
+							}
+						})
+					}
+				})
+
+			}
+
+			function uploadImg() {
+				// create a formdata obj to send the file
+				let fd = new FormData()
+				fd.append("file", productImg.files[0])
+				$.ajax({
+					url: '/api/uploadImage',
+					type: 'post',
+					data: fd,
+					contentType: false,
+					processData: false,
+					success:function(res){
+						console.log("Upload Image Success!");
+					}
+				})
+				
+				for (var key of fd.entries()) {
+					console.log(key[0] + ', ' + key[1]);
+				}
+				console.log(productImg.files[0])
+
+			}
+
+			function changeData() {
+				$("#categoryId").change(function () { // The change event occurs when the value of an element has been changed
+					var categoryId = $(this).val()
+
+					if (categoryId != "") {
+						$.ajax({
+							url: `/api/products/category/${categoryId}`,
+							type: 'get',
+							contentType: 'application/json',
+							success: function (res) {
+								console.log(res)
+								$("#variantId").empty()
+								$("#variantId").append("<option value=''>--Pilih Variant--</option>")
+
+								$.each(res, (i, data) => {
+									$("#variantId").append(`<option value="${data.id}">${data.variantName}</option>`)
+								}
+
+								)
+							}
+						})
+					} else {
+						$("#variantId").empty()
+						$("#variantId").append("<option value=''>--Pilih Variant--</option>")
+					}
+				})
+			}
+
+			function fEdit(id) {
+				$.ajax({
+					url: `/api/products/${id}`,
+					type: 'get',
+					contentType: "application/json",
+					success: function (prod) {
+						$.ajax({
+							url: '/api/category',
+							type: 'get',
+							contentType: 'application/json',
+							success: function (category) {
+								$.ajax({
+									url: `/api/products/category/${prod.variant.categoryId}`,
+									type: 'get',
+									contentType: 'application/json',
+									success: function (variant) {
+
+										var str = `<form>
+								<div class="form-group"> 
+									<label>Category</label>
+									<select id="categoryId" class="custom-select">
+									<option value="">--Pilih Category--</option>`
+										for (var i = 0; i < category.length; i++) {
+											var selected = prod.variant.categoryId == category[i].id ? "selected" : ""
+											console.log(prod)
+											str += `<option value="${category[i].id}" ${selected}>${category[i].categoryName}</option>`
+										}
+										str += `</select>
+								</div>
+								`
+										str += `
+								<div class="form-group"> 
+									<label>Variant</label>
+									<select id="variantId" class="custom-select">
+									<option>--Pilih Variant--</option>`
+										for (var i = 0; i < variant.length; i++) {
+											var selected = prod.variantId == variant[i].id ? "selected" : ""
+											str += `<option value="${variant[i].id}" ${selected}>${variant[i].variantName}</option>`
+										}
+										str += `</select>
+										
+								</div>
+							<div class="form-group"> 
+								<label>Initial</label>
+								<input type="text" class="form-control" id="productInitial" value="${prod.productInitial}">
+							</div>
+							<div class="form-group"> 
+								<label>Name</label>
+								<input type="text" class="form-control" id="productName" value="${prod.productName}">
+							</div>
+							<div class="form-group"> 
+								<label>Description</label>
+								<input type="text" class="form-control" id="desc" value="${prod.desc}">
+							</div>
+							<div class="form-group"> 
+								<label>Price</label>
+								<input type="number" class="form-control" id="price" value="${prod.price}">
+							</div>
+							<div class="form-group"> 
+								<label>Stock</label>
+								<input type="number" class="form-control" id="stock" value="${prod.stock}">
+							</div>`
+										var active = prod.isActive ? "checked" : ""
+
+										str += `<div class="form-group ml-2"> 
+								<input type="checkbox" class="form-check-input" disabled id="isActive" ${active}>		
+								<label class="form-check-label">Active </label>
+							</div>
+						</form>`
+
+										$(".modal-title").html("Edit Data Product")
+										$(".modal-body").html(str)
+										$("#btnSave").html("Save Data")
+										$("#btnSave").off("click").on("click", function () {saveEditedData(id)});
+										$("#modal").modal("show")
+										changeData()
+									}
+
+								})
+							}
+						})
+
+					}
+				})
+			}
+
+			function fDelete(id) {
+				$.ajax({
+					url: `/api/products/${id}`,
+					type: `get`,
+					contentType: "application/json",
+					success: function (res) {
+						var str = `
+						<h4>Are you sure you want to delete this data? </h4>
+						<center><b>Variant Initial</b>: ${res.productInitial}</center>
+						<center><b>Variant Name</b>: ${res.productName}</center>
+						<center><b>Category</b>: ${res.variant.variantInitial}/${res.variant.category.categoryInitial} </center>`
+						$(".modal-title").html("Delete Product")
+						$(".modal-body").html(str)
+						$("#btnSave").html("Delete")
+						$("#btnSave").off("click").on("click", function () {deleteProduct(id)})
+						$("#modal").modal("show")
+
+					}
+				})
+			}
+
+			function saveCreateData() {
+				var productData =  `{
+					"variantId" : ${$('#variantId').val()},
+					"productInitial" : "${$('#productInitial').val()}",
+					"productName" : "${$('#productName').val()}",
+					"desc" : "${$('#desc').val()}",
+					"isActive" : ${$('#isActive')[0].checked},
+					"price" : "${$('#price').val()}",
+					"stock" : "${$('#stock').val()}"
+				}`
+
+
+				$.ajax({
+					url: "/api/products/new",
+					type: "post",
+					data: productData,
+					contentType: "application/json",
+					success: function (res) {
+						$("#modal").modal("toggle")
+						getAllDatas()
+					}
+				})
+
+			}
+
+			function saveEditedData(id) {
+				var formData = `{
+					"variantId" : ${$('#variantId').val()},
+					"productInitial" : "${$('#productInitial').val()}",
+					"productName" : "${$('#productName').val()}",
+					"desc" : "${$('#desc').val()}",
+					"isActive" : ${$('#isActive')[0].checked},
+					"price" : "${$('#price').val()}",
+					"stock" : "${$('#stock').val()}"
+				}`
+
+				$.ajax({
+					url: `/api/products/edit/${id}`,
+					type: "put",
+					contentType: "application/json",
+					data: formData,
+					success: function () {
+						$("#modal").modal("toggle")
+						getAllDatas()
+					}
+				})
+
+			}
+
+			function deleteProduct(id) {
+
+				$.ajax({
+					url: `/api/products/delete/${id}`,
+					type: 'put',
+					contentType: 'application/json',
+					success: function () {
+						$("#modal").modal("toggle")
+						getAllDatas()
+					}
+				})
+			}
+
+		</script>
+	</div>
+
+
+</body>
+
+</html>

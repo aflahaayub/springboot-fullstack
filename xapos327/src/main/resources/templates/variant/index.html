@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html layout:decorate="~{fragments/layout}">
+
+<head>
+	<title>Variant Page</title>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<h1>Variant Page</h1>
+		<button
+			onclick="window.location.href='/variant/addform'">CREATE</button><!-- CREATE button, this will look for addform method in controller -->
+
+		<table border="2">
+			<thead>
+				<tr>
+					<th>Variant Initial</th>
+					<th>Variant Name</th>
+					<th>Category</th>
+					<th>Is Active</th>
+					<th colspan="2">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="item:${listVariant}">
+					<td th:text="${item.variantInitial}"></td>
+					<td th:text="${item.variantName}"></td>
+					<td th:text="${item.category.categoryName}"></td>
+					<td th:text="${item.isActive}"></td>
+					<td><a th:href="@{/variant/edit/{id}(id=${item.id})}">Edit</a></td>
+					<td><a th:href="@{/variant/delete/{id}(id=${item.id})}">Delete</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</body>
+
+</html>

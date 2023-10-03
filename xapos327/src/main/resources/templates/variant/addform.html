@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Add Form Variant</title>
+	</head>
+	<body>
+		<h1>Variant Form</h1>
+		<button onclick="window.location.href='/variant/index'">BACK</button>
+		<form th:action="@{/variant/save}" method="post" th:object="${variant}">
+			<input type="hidden" th:field="*{id}">
+			<table border="2">
+				<tr>
+					<td>Variant Initial</td>
+					<td>
+						<input type="text" th:field="*{variantInitial}">
+					</td>
+				</tr>
+				<tr>
+					<td>Variant Name</td>
+					<td>
+						<input type="text" th:field="*{variantName}">
+					</td>
+				</tr>
+				<tr>
+					<td>Category</td>
+					<td>
+						<select th:field="*{categoryId}">
+							<option th:each="item:${listCategory}" th:value="${item.id}" th:text="${item.categoryName}"></option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>Is Active</td>
+					<td>
+						<input type="checkbox" name="isActive" th:field="*{isActive}">
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2"><button type="submit">Submit</button></td>
+				</tr>
+			</table>
+		</form>
+	</body>
+</html>

@@ -1,36 +1,199 @@
 <!DOCTYPE html>
 
-<html>
+<html layout:decorate="~{fragments/layout}">
 
 <head>
 	<title>Add Form Category</title>
 </head>
 
 <body>
-	<h1>Create Form</h1>
-	<form th:action="@{/category/save}" method="post" th:object="${category}"> <!--the category will be used as the parameter when make a PostMapping -->
-		<input type="hidden" name="id" th:field="*{id}"> <!-- buat nangkep si id dan bisa dibawa ke controller post -->
-		<table border="2">
-			<tr>
-				<td>Category Initial</td>
-				<td><input type="text" name="categoryInitial" th:field="*{categoryInitial}"></td>
-			</tr>
-			<tr>
-				<td>Category Name</td>
-				<td><input type="text" name="categoryName" th:field="*{categoryName}"></td>
-			</tr>
-			<tr>
-				<td>Is Active</td>
-				<td><input type="checkbox" name="isActive" th:field="*{isActive}"></td>
-			</tr>
-			<tr>
-				<td colspan="2">
-					<input type="submit" value="Save">
-				</td>
+	<div layout:fragment="content">
+		<h1>Create Form</h1>
+		<form id="form_add" th:action="@{/category/save}" enctype="multipart/form-data" method="post"
+			th:object="${category}">
+			<!--the category will be used as the parameter when make a PostMapping -->
+			<input type="hidden" name="id" id="id" th:field="*{id}">
+			<!-- buat nangkep si id dan bisa dibawa ke controller post -->
+			<table border="2">
+				<tr>
+					<td>Category Initial</td>
+					<td><input type="text" name="categoryInitial" value="*{categoryInitial}"
+							th:field="*{categoryInitial}">
+						<span id="validate_categoryInitial" class="text-danger"></span>
+					</td>
+				</tr>
+				<tr>
+					<td>Category Name</td>
+					<td>
+						<input type="text" id="categoryName" name="categoryName" value="*{categoryName}"
+							th:field="*{categoryName}">
+						<span id="validate_categoryName" class="text-danger"></span>
+					</td>
+				</tr>
+				<tr>
+					<td><label for="imageFile">Upload Image</label></td>
+					<td><input type="file" name="file" id="imageFile"></td>
+				</tr>
+				<tr>
+					<td>Is Active</td>
+					<td><input type="checkbox" name="isActive" value="*{isActive}" th:field="*{isActive}"></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<input type="submit" value="Save">
+					</td>
 
-			</tr>
-		</table>
-	</form>
+				</tr>
+			</table>
+		</form>
+		<script>
+			/*$("#form_add").validate({
+				errorClass: "text-danger",
+				rules: {
+					categoryInitial: {
+						required: true,
+						minLength: 2
+					},
+					categoryName: {
+						required: true,
+						minLength: 3
+					},
+					isActive: {
+						required: true
+					}
+				},
+				messages: {
+					categoryInitial: {
+						required: "Please fill Category Initial!",
+						minLength: "The Initial must be more than or equal to 2 char!"
+					},
+					categoryName: {
+						required: "Please fill Category Name!",
+						minLength: "The name must be more than or equal to 3 char!"
+					},
+					isActive: {
+						required: "Please checked is Active!"
+					}
+				},
+				submitHandler
+			})*/
+			$("#form_add").validate({
+				errorClass: "text-danger",
+				rules: {
+					categoryInitial: {
+						required: true,
+						minlength: 3,
+						maxlength: 10,
+					},
+					categoryName: {
+						required: true,
+						minlength: 3
+					},
+					file: {
+						required: true,
+						typeFile: "jpg|JPG|jpeg|JPEG|png|PNG",
+						uploadFile: true
+					},
+					isActive: {
+						required: true,
+					}
+				},
+				messages: {
+					categoryInitial: {
+						required: "Please fill Category Initial",
+						minlength: "The name must consist of at least 3 characters",
+						maxlength: "The name must consist of at max 10 characters"
+					},
+					categoryName: {
+						required: "Please fill Category Name",
+						minlength: "The name must consist of at least 3 characters"
+					},
+					file:{
+						required: "",
+						typeFile: "Please upload jpg/jpeg/png !",
+						uploadFile: "Minimal file 1 MB!"
+					},
+					isActive: {
+						required: "Please checked Is Active",
+					}
+				},
+				submitHandler: function (form) {
+					// validation if the name is the same
+					// if the category name have the same value as the category name that already stored, prevent it to being submitted
+					var id = $("#id").val()
+					console.log(id)
+					id = id == "" ? 0 : id
+					var categoryName = $("#categoryName").val()
+
+					$.ajax({
+						url: '/category/checkNameIfExist',
+						type: "get",
+						data: {categoryName: categoryName, id: id},
+						dataType: 'json',
+						success: function (res) {
+							console.log(res)
+							if (res && id == 0) {
+								$("#validate_categoryName").text("Category name is already exist!")
+
+							} else {
+								console.log(form)
+								submitFunction(form)
+							}
+						}
+					})
+
+
+				}
+			})
+
+			function submitFunction(form) {
+				var formData = new FormData()
+
+				var dataForm = $(form).serializeArray();
+				console.log(dataForm)
+
+				$.each(dataForm, function (key, input) {
+					console.log(key, input)
+					formData.append(input.name, input.value)
+				})
+
+				var file = $("#imageFile").prop("files")
+				if (file.length > 0) {
+					formData.append("file", file[0])
+				}
+
+				$.ajax({
+					url: '/category/save',
+					data: formData,
+					type: 'post',
+					dataType: "json",
+					contentType: false,
+					processData: false,
+					cache: false,
+					success: function (respon) {
+						window.location.href = "/category/index"
+
+					}
+				})
+			}
+
+			jQuery.validator.addMethod("typeFile", function (value, element, param) {
+				console.log(value.match(new RegExp("." + param + "$")))
+				return value.match(new RegExp("." + param + "$"));
+			})
+			
+			jQuery.validator.addMethod("uploadFile", function (val, element) {
+				var size = element.files[0].size;
+				if (size > 1048576)// checks the file more than 1 MB
+				{
+					return false;
+				} else {
+					return true;
+				}
+			})
+		</script>
+	</div>
 </body>
+
 
 </html>

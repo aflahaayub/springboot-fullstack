@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html layout:decorate="~{fragments/layout}">
+
+<head>
+	<title>Role Page</title>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<h1 class="text-center">All Roles</h1>
+		<button class="btn btn-primary" onclick="createRole()">Create Role</button>
+		<br>
+		<input type="text" id="searchRoleByName" oninput="getRoleSearch(this.value)" placeholder="Search....">
+		<br>
+		<br>
+		<select id="sortRoleByName" onchange="sortRoleyByName(this.value)">
+			<option value="ASC">A-Z</option>
+			<option value="DESC">Z-A</option>
+		</select>
+		<br>
+		<br>
+
+		<div id="btnHapus">
+			<button class="btn btn-primary btn-sm mb-3" disabled>Hapus Multiple</button>
+		</div>
+
+		<select id="betaSize" class="mb-3" onchange="getAllRoles(0,this.value)">
+			<option value="5">5</option>
+			<option value="10">10</option>
+			<option value="15">15</option>
+		</select>
+		<div id="isiData"></div>
+
+		<script>
+			allDatas(0, 5);
+
+			function allDatas(currPage, size) {
+				var keyword = ""
+				var sortType = $("#sortRoleByName").val()
+				var endPoint = ""
+				if (keyword == "") {
+					endPoint = "/api/roles/allRole"
+				} else {
+					endPoint = `/api/roles/paging?currentPage=${currPage}&size=${size}&keyword=${keyword}&sortType=${sortType}`
+				}
+				$.ajax({
+					url: `/api/roles/paging?currentPage=${currPage}&size=${size}&keyword=""&sortType=${sortType}`,
+					type: 'get',
+					contentType: 'application/json',
+					success: function (res) {
+						listView(res, size, keyword, sortType)
+					}
+				})
+
+			}
+
+			function listView(response, size, keyword, sortType) {
+
+				var str = `
+					<table class="table table-hover table-striped mt-3 overflow-auto" border="3" >
+						<thead class="thead-dark">
+							<tr>
+								<th>Role Name</th>
+								<th>isDelete</th>
+								<th>Created Date </th>
+								<th colspan="2">Action</th>
+							</tr>
+						</thead>
+						<tbody>`
+							console.log(response.data)
+				var res = response
+				response = response.data
+				
+				for (var i = 0; i < response.length; i++) {
+
+					var checked = response[i].isDelete ? "checked" : "";
+					str += `<tr>
+								<td>${response[i].roleName} </td>
+								<td><input type="checkbox" disabled ${checked}></td>
+								<td>${response[i].createDate} </td>
+								<td><button class="btn btn-warning" value="${response[i].id}" onclick="fEdit(value)"> Edit </button> </td>
+							<td><button class="btn btn-danger" value="${response[i].id}" onclick="fDelete(value)"> Delete </button> </td>
+							</tr>`
+				}
+
+				str += `</tbody>
+					</table>
+				`
+
+				// the paging
+				str += `<nav aria-label="Page navigation example">
+					<ul class="pagination justify-content-end">`
+				var prevMove = res.pages - 1 <= 0 ? 0 : res.pages - 1
+				str += `<li class="page-item">
+							<a href="#" class="page-link" onclick="getAllCategory('${prevMove}','${size}')" >Previous</a>
+						</li>
+						`
+
+				console.log(res)
+				for (var i = 0; i < res.total_page; i++) {
+
+					str += `<a href="#" class="page-link" onclick="allDatas(${i}, ${size})"> ${i + 1} </a>`
+				}
+
+				var nextMove = res.pages + 1 > res.total_pages - 1 ? res.total_pages - 1 : res.pages + 1
+				str += `
+				<li class="page-item">
+							<a class="page-link" onclick="allDatas('${nextMove}','${size}')" href="#">Next</a>
+						</li>
+					</ul>
+				</nav>`
+
+				$("#isiData").html(str);
+			}
+
+			function createRole() {
+				var str = `<form>
+						<div class="form-group">
+							<label>Role Name</label>
+							<input type="text" class="form-control" id="roleName">
+						</div>
+						<label>Created By</label>
+							<input type="text" class="form-control" id="createdBy">
+					</form>
+				`
+
+				$(".modal-title").html("Create Role")
+				$(".modal-body").html(str)
+				$("#btnSave").html("Save Data")
+				$("#btnSave").off("click").on("click", saveDataRole)
+				$("#modal").modal("show")
+			}
+
+			function saveDataRole() {
+				var formData = `{
+					"roleName" : "${$("#roleName").val()}",
+					"createdBy" : "${$("#createdBy").val()}"
+				}`
+
+				$.ajax({
+					url: '/api/roles/postRoles',
+					type: 'post',
+					contentType: "application/json",
+					data: formData,
+					success: function () {
+						$("#modal").modal("toggle")
+						allDatas()
+					}
+				})
+			}
+
+			function fEdit(id) {
+				$.ajax({
+					url: `/api/roles/getRole/${id}`,
+					type: 'get',
+					contentType: 'application/json',
+					success: function (res) {
+						console.log(res)
+						var str = `<form>
+						<div class="form-group">
+							<label>Role Name</label>
+							<input type="text" class="form-control" id="roleName" value="${res.roleName}">
+						</div>
+						<label>Created By</label>
+							<input type="text" class="form-control" id="createdBy" value="${res.createdBy}">
+					</form>
+					`
+						$(".modal-title").html("Edit Role")
+						$(".modal-body").html(str)
+						$("#btnSave").off("click").on("click", function () {saveEditedRole(id)})
+						$("#modal").modal("show")
+					}
+				})
+			}
+
+			function saveEditedRole(id) {
+				var formData = `{
+					"roleName" : "${$("#roleName").val()}",
+					"createdBy" : "${$("#createdBy").val()}"
+				}`
+
+				console.log(formData)
+
+				$.ajax({
+					url: `/api/roles/editRole/${id}`,
+					type: 'put',
+					contentType: "application/json",
+					data: formData,
+					success: function () {
+						$("#modal").modal("toggle")
+						allDatas()
+					}
+				})
+			}
+
+			function fDelete(id) {
+				$.ajax({
+					url: `/api/roles/getRole/${id}`,
+					type: `get`,
+					contentType: "application/json",
+					success: function (res) {
+						var str = `
+						<h4>Are you sure you want to delete this data? </h4>
+						<center><b>Role Name</b>: ${res.roleName}</center>`
+
+						$(".modal-title").html("Delete Role")
+						$(".modal-body").html(str)
+						$("#btnSave").html("Delete")
+						$("#btnSave").off("click").on("click", function () {deleteRole(id)})
+						$("#modal").modal("show")
+
+					}
+				})
+			}
+
+			function deleteRole(id) {
+				$.ajax({
+					url: `/api/roles/deleteRole/${id}`,
+					type: 'put',
+					contentType: 'application/json',
+					success: function () {
+						$("#modal").modal("toggle")
+						allDatas()
+					}
+				})
+			}
+
+		</script>
+	</div>
+
+
+</body>
+
+</html>

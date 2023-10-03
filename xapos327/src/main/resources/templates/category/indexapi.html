@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html layout:decorate="~{fragments/layout}">
+
+<head>
+	<title>Category Page</title>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<h1>Category Page</h1>
+		<div>
+			<button onclick="openModal()" class="btn btn-primary py-2 my-3">Create Data</button>
+		</div>
+
+		<div id="isiData"></div>
+		<script>
+
+			$(function () {
+				getAllCategory()
+			})
+
+			function getAllCategory() {
+				$.ajax({
+					url: '/api/category',
+					type: 'get',
+					contentType: 'application/json',
+					success: (response) => {
+						listView(response)
+					}
+				})
+				console.log('test')
+			}
+
+			function listView(response) {
+				var str = '<table class="table table-hover table-striped" border="3">'
+				str += '<thead class="thead-dark"> '
+				str += '<tr> <th class="text-center">No</th><th class="text-center">Category Initial</th><th class="text-center">Category Name</th><th class="text-center">Is Active</th><th class="text-center" colspan="2">Action</th></tr>'
+				str += '</thead>';
+				console.log(response[0])
+
+				for (var i = 0; i < response.length; i++) {
+					str += '<tr>'
+					str += '<td>' + (i + 1) + '</td>'
+					str += '<td>' + response[i].categoryInitial + '</td>'
+					str += '<td>' + response[i].categoryName + '</td>'
+
+					var checked = response[i].isActive ? 'checked' : ''
+					str += '<td> <input type="checkbox" disabled ' + checked + '></td>'
+					str += '<td><button class="btn btn-warning" value="' + response[i].id + '" onclick= fEdit(value) >Edit</button></td>'
+					str += `<td><button class="btn btn-danger" onclick=fDelete(${response[i].id})>Delete</button></td>`
+					str += '</tr>'
+				}
+				str += '</tbody>';
+				str += '</table>';
+				//$('#isiData').empty()
+				$('#isiData').html(str)
+			}
+
+			function openModal() {
+				var str = `<form>
+							  <div class="form-group">
+							    <label for="categoryInitial">Category Initial</label>
+							    <input type="text" class="form-control" id="categoryInitial">
+							  </div>
+							  <div class="form-group">
+							    <label for="categoryName">Category Name</label>
+							    <input type="text" class="form-control" id="categoryName">
+							  </div>
+							  <div class="form-group form-check">
+								  <input type="checkbox" class="form-check-input" id="isActive">
+							    <label for="isActive" class="form-check-label">Is Active</label>
+							  
+							  </div>
+							</form>`
+
+				// class from the layout html in Modal 
+				$('.modal-title').html("Form Category")
+				$('.modal-body').html(str)
+				$('#btnSave').html("Save Data")
+
+				$('#btnSave').off("click").on("click", saveCategory)
+				$('#modal').modal("show")
+			}
+
+			function saveCategory() {
+				var formData = ` 
+				{
+				"categoryInitial" : "${$("#categoryInitial").val()}",
+				"categoryName" : "${$("#categoryName").val()}",
+				"isActive" : ${$("#isActive")[0].checked}
+				}
+				 `
+				$.ajax({
+					url: '/api/category/add',
+					data: formData,
+					type: 'post',
+					contentType: 'application/json',
+					success: function () {
+						$("#modal").modal("toggle")
+
+						getAllCategory()
+					}
+				})
+			}
+
+			function fEdit(id) {
+				$.ajax({
+					url: `
+					/api/category/${id}`,
+					type: 'get',
+					contentType: 'application/json',
+					success: function (categ) {
+						var str = `<form>
+							  <div class="form-group">
+							    <label for="categoryInitial">Category Initial</label>
+							    <input type="text" class="form-control" id="categoryInitial" value="${categ.categoryInitial}"> 
+							  </div>
+							  <div class="form-group">
+							    <label for="categoryName">Category Name</label>
+							    <input type="text" class="form-control" id="categoryName" value="${categ.categoryName}">
+							  </div>
+							  <div class="form-group form-check">`
+
+						var checked = categ.isActive ? 'checked' : ''
+						console.log(categ.isActive)
+						str += `<input type="checkbox" class="form-check-input" id="isActive" ${checked}>
+							    <label for="isActive" class="form-check-label">Is Active</label>
+							  </div>
+							</form>`
+
+						$('.modal-title').html("Form Category")
+						$('.modal-body').html(str)
+						$('#btnSave').html("Save Data")
+
+						$('#btnSave').off("click").on("click",
+							function () {
+								updateCategory(id);
+							}
+						)
+
+						$('#modal').modal("show")
+					}
+				})
+			}
+			
+			function fDelete(id) {
+				$.ajax({
+					url: `
+					/api/category/${id}`,
+					type: 'get',
+					contentType: 'application/json',
+					success: function (data) {
+						var str = `
+						<h4>Are you sure you want to delete this data? </h4>
+						<center><b>Category Initial</b>: ${data.categoryInitial}</center>
+						<center><b>Category Name</b>: ${data.categoryName}</center>`
+					
+					$('.modal-title').html("Delete Category")
+						$('.modal-body').html(str)
+						$('#btnSave').off("click").on("click",
+							function () {
+								deleteCategory(id);
+							}
+						)
+
+						$('#modal').modal("show")	
+					}
+				})
+			}
+			
+			function deleteCategory(id){
+				$.ajax({
+					url: `/api/category/delete/${id}`,
+					type: 'put', // soft delete
+					contentType: 'application/json',
+					success: function(){
+						$("#modal").modal('toggle')
+						getAllCategory()
+					}
+				})
+			}
+
+			function updateCategory(id) {
+				var formData = ` 
+				{
+				"categoryInitial" : "${$("#categoryInitial").val()}",
+				"categoryName" : "${$("#categoryName").val()}",
+				"isActive" : ${$("#isActive")[0].checked}
+				}
+				 `
+				$.ajax({
+					url: `/api/category/edit/${id}`,
+					data: formData,
+					type: 'put',
+					contentType: 'application/json',
+					success: function () {
+						$("#modal").modal("toggle")
+						getAllCategory()
+					}
+				})
+			}
+		</script>
+	</div>
+</body>
+
+</html>

@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 
-<html>
-	<head>
-		<title>Category Page</title>
-	</head>
-	<body>
+<html layout:decorate="~{fragments/layout}">
+
+<head>
+	<title>Category Page</title>
+</head>
+
+<body>
+	<div layout:fragment="content">
 		<h1>Category Page</h1>
 		<button onclick="window.location.href='/category/addform'">Create</button>
 		<table border="2">
 			<thead>
 				<tr>
+					<th>Image</th>
 					<th>Category Initial</th>
 					<th>Category Name</th>
 					<th>Is Active</th>
@@ -18,6 +22,7 @@
 			</thead>
 			<tbody>
 				<tr th:each="item:${listCategory}">
+					<td><img th:src="@{${'/img/' + item.sphoto}}" style="width:135px;" ></td>
 					<td th:text="${item.categoryInitial}"></td>
 					<td th:text="${item.categoryName}"></td>
 					<td th:text="${item.isActive}"></td>
@@ -26,8 +31,9 @@
 				</tr>
 			</tbody>
 		</table>
-	</body>
-	
-	
-	
+	</div>
+</body>
+
+
+
 </html>
